@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface CreateUserFormProps {
   open: boolean;
@@ -107,16 +108,15 @@ export function CreateUserForm({ open, onOpenChange, onUserCreated }: CreateUser
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-medium">Password *</label>
-            <input
-              type="password"
+            <PasswordInput
+              label="Password *"
               required
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               placeholder="••••••••"
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              error={errors.password}
+              className="flex h-9 rounded-md"
             />
-            {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
           </div>
 
           <div className="space-y-1.5">

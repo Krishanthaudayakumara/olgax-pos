@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { PasswordInput } from "@/components/ui/password-input";
 
 interface ChangePasswordFormProps {
   open: boolean;
@@ -103,68 +104,44 @@ export function ChangePasswordForm({
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Current Password</label>
-            <input
-              type="password"
-              value={formData.currentPassword}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  currentPassword: e.target.value,
-                }))
-              }
-              placeholder="Enter your current password"
-              className="w-full px-3 py-2 rounded-lg border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            {errors.currentPassword && (
-              <p className="text-xs text-destructive mt-1">
-                {errors.currentPassword}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            label="Current Password"
+            value={formData.currentPassword}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                currentPassword: e.target.value,
+              }))
+            }
+            placeholder="Enter your current password"
+            error={errors.currentPassword}
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-1.5">New Password</label>
-            <input
-              type="password"
-              value={formData.newPassword}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  newPassword: e.target.value,
-                }))
-              }
-              placeholder="Enter new password"
-              className="w-full px-3 py-2 rounded-lg border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            {errors.newPassword && (
-              <p className="text-xs text-destructive mt-1">
-                {errors.newPassword}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            label="New Password"
+            value={formData.newPassword}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                newPassword: e.target.value,
+              }))
+            }
+            placeholder="Enter new password"
+            error={errors.newPassword}
+          />
 
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Confirm Password</label>
-            <input
-              type="password"
-              value={formData.confirmPassword}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  confirmPassword: e.target.value,
-                }))
-              }
-              placeholder="Confirm new password"
-              className="w-full px-3 py-2 rounded-lg border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            {errors.confirmPassword && (
-              <p className="text-xs text-destructive mt-1">
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
+          <PasswordInput
+            label="Confirm Password"
+            value={formData.confirmPassword}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                confirmPassword: e.target.value,
+              }))
+            }
+            placeholder="Confirm new password"
+            error={errors.confirmPassword}
+          />
 
           <div className="flex gap-2 justify-end pt-4">
             <button
