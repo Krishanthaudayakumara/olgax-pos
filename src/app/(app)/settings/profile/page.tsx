@@ -6,23 +6,15 @@ import { EditProfileForm } from "@/components/settings/edit-profile-form";
 import { useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
-  const { data: session } = useSession();
+  const { data: session, refetch } = useSession();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [user, setUser] = useState(session?.user || null);
-
-  // Sync user state with session whenever session changes
-  useEffect(() => {
-    if (session?.user) {
-      setUser(session.user);
-    }
-  }, [session?.user]);
 
   if (!session?.user) {
     return <div className="p-4">Loading...</div>;
   }
 
-  const displayUser = user || session.user;
+  const displayUser = session.user;
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl space-y-6">
@@ -100,7 +92,9 @@ export default function ProfilePage() {
         open={editOpen}
         onOpenChange={setEditOpen}
         user={displayUser}
-        onSuccess={(updatedUser) => setUser(updatedUser)}
+        onSuccess={async () => {
+          await refetch();
+        }}
       />
     </div>
   );

@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -27,64 +26,32 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = changePasswordSchema.parse(body);
 
-    // Get user with password for verification
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        email: true,
-        password: true,
+    // Call Better Auth server-side API to change user's password.
+    // This automatically verifies the current password and hashes the new password using scrypt.
+    await auth.api.changePassword({
+      body: {
+        currentPassword: parsed.currentPassword,
+        newPassword: parsed.newPassword,
       },
-    });
-
-    if (!user) {
-      return Response.json(
-        { error: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    // Verify current password using bcryptjs (Better Auth's password hashing algorithm)
-    const bcrypt = await import("bcryptjs");
-    const isPasswordValid = await bcrypt.compare(
-      parsed.currentPassword,
-      user.password || ""
-    );
-
-    if (!isPasswordValid) {
-      return Response.json(
-        { error: "Current password is incorrect" },
-        { status: 400 }
-      );
-    }
-
-    // Hash new password with bcryptjs
-    const hashedPassword = await bcrypt.hash(parsed.newPassword, 10);
-
-    // Update password
-    await db.user.update({
-      where: { id: session.user.id },
-      data: {
-        password: hashedPassword,
-      },
+      headers: await headers(),
     });
 
     return Response.json(
       { message: "Password changed successfully" },
       { status: 200 }
     );
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { error: "Validation failed", details: error.errors },
+        { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
 
     console.error("Error changing password:", error);
     return Response.json(
-      { error: "Failed to change password" },
-      { status: 500 }
+      { error: error.message || "Failed to change password" },
+      { status: 400 }
     );
   }
 }

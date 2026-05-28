@@ -25,7 +25,7 @@ export async function PUT(request: Request) {
       return Response.json(
         {
           error: "Validation failed",
-          details: validation.error.errors.map((e) => ({
+          details: validation.error.issues.map((e) => ({
             path: e.path,
             message: e.message,
           })),
@@ -36,27 +36,19 @@ export async function PUT(request: Request) {
 
     const { name, email } = validation.data;
 
-    // Check if email is already taken by another user
-    if (email && email !== session.user.email) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email },
-      });
-
-      if (existingUser) {
-        return Response.json(
-          { error: "Email already in use" },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Update user profile
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
+    // Update user profile using Better Auth server-side API so that session/cookie cache is updated.
+    // This will throw if the email is already in use by another user.
+    await auth.api.updateUser({
+      body: {
         ...(name && { name }),
         ...(email && { email }),
       },
+      headers: await headers(),
+    });
+
+    // Fetch the updated user details to return to the client
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
       select: {
         id: true,
         email: true,
@@ -67,10 +59,10 @@ export async function PUT(request: Request) {
     });
 
     return Response.json({ user: updatedUser });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Profile update error:", error);
     return Response.json(
-      { error: "Failed to update profile" },
+      { error: error.message || "Failed to update profile" },
       { status: 500 }
     );
   }

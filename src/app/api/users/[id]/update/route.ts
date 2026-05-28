@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { z } from "zod";
 
@@ -39,7 +39,7 @@ export async function PUT(
 
     // If changing email, check for duplicates
     if (parsed.email) {
-      const existingUser = await db.user.findFirst({
+      const existingUser = await prisma.user.findFirst({
         where: {
           email: parsed.email,
           NOT: { id },
@@ -54,22 +54,15 @@ export async function PUT(
       }
     }
 
-    // Update user
-    const user = await db.user.update({
+    // Update user and role directly on User table
+    const user = await prisma.user.update({
       where: { id },
       data: {
         ...(parsed.name && { name: parsed.name }),
         ...(parsed.email && { email: parsed.email }),
+        ...(parsed.role && { role: parsed.role }),
       },
     });
-
-    // Update role if provided
-    if (parsed.role) {
-      await db.userRole.updateMany({
-        where: { userId: id },
-        data: { role: parsed.role },
-      });
-    }
 
     return Response.json(
       {
@@ -84,7 +77,7 @@ export async function PUT(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { error: "Validation failed", details: error.errors },
+        { error: "Validation failed", details: error.issues },
         { status: 400 }
       );
     }
