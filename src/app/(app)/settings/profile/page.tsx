@@ -1,19 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
-import { useSession } from "@better-auth/react";
+import { useSession } from "@/lib/auth-client";
 
 export default function ProfilePage() {
-  const session = useSession();
+  const { data: session } = useSession();
   const [passwordOpen, setPasswordOpen] = useState(false);
 
-  if (!session.data?.user) {
+  if (!session?.user) {
     return <div>Loading...</div>;
   }
 
-  const user = session.data.user;
+  const user = session.user;
 
   return (
     <div className="max-w-2xl space-y-6">
