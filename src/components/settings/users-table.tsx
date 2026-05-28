@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { EditUserForm } from "./edit-user-form";
 
 interface User {
   id: string;
   email: string;
   name: string;
-  role: string;
+  role: "ADMIN" | "CASHIER";
   createdAt: Date;
   emailVerified: boolean;
 }
@@ -16,10 +17,13 @@ interface User {
 interface UsersTableProps {
   users: User[];
   onUserDeleted?: (userId: string) => void;
+  onUserUpdated?: () => void;
 }
 
-export function UsersTable({ users, onUserDeleted }: UsersTableProps) {
+export function UsersTable({ users, onUserDeleted, onUserUpdated }: UsersTableProps) {
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   async function handleDelete(userId: string) {
     if (!confirm("Are you sure? This action cannot be undone.")) return;
@@ -41,6 +45,11 @@ export function UsersTable({ users, onUserDeleted }: UsersTableProps) {
       toast.error("Failed to delete user");
       setDeleting(null);
     }
+  }
+
+  function handleEditClick(user: User) {
+    setEditingUser(user);
+    setEditOpen(true);
   }
 
   if (users.length === 0) {
@@ -83,19 +92,41 @@ export function UsersTable({ users, onUserDeleted }: UsersTableProps) {
                 {new Date(user.createdAt).toLocaleDateString()}
               </td>
               <td className="px-4 py-3 text-right">
-                <button
-                  onClick={() => handleDelete(user.id)}
-                  disabled={deleting === user.id}
-                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Trash2 className="h-3 w-3" />
-                  Delete
-                </button>
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => handleEditClick(user)}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+                  >
+                    <Edit2 className="h-3 w-3" />
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user.id)}
+                    disabled={deleting === user.id}
+                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {editingUser && (
+        <EditUserForm
+          open={editOpen}
+          onOpenChange={setEditOpen}
+          user={editingUser}
+          onSuccess={() => {
+            setEditOpen(false);
+            setEditingUser(null);
+            onUserUpdated?.();
+          }}
+        />
+      )}
     </div>
   );
 }

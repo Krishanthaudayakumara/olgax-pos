@@ -1,19 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export default function SettingsLayout({ children }: { children: ReactNode }) {
-  return <SettingsLayoutClient>{children}</SettingsLayoutClient>;
-}
-
-function SettingsLayoutClient({ children }: { children: ReactNode }) {
   // Using a client-side version to access usePathname
   const pathname = usePathname();
 
   const tabs = [
     { label: "General", href: "/settings", id: "general" },
     { label: "Users", href: "/settings/users", id: "users" },
+    { label: "Profile", href: "/settings/profile", id: "profile" },
   ];
 
   return (

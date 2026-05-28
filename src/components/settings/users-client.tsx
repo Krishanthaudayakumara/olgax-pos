@@ -26,6 +26,20 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
     setUsers((prev) => prev.filter((u) => u.id !== userId));
   }
 
+  function handleUserUpdated() {
+    // Refresh users list from API
+    fetch("/api/users")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.users) {
+          setUsers(data.users);
+        }
+      })
+      .catch(() => {
+        // Silently fail, user can refresh manually
+      });
+  }
+
   function handleUserCreated() {
     // Refresh users list from API
     fetch("/api/users")
@@ -55,7 +69,11 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
         </button>
       </div>
 
-      <UsersTable users={users} onUserDeleted={handleUserDeleted} />
+      <UsersTable 
+        users={users} 
+        onUserDeleted={handleUserDeleted}
+        onUserUpdated={handleUserUpdated}
+      />
 
       <CreateUserForm
         open={createOpen}
