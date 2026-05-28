@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
 import { EditProfileForm } from "@/components/settings/edit-profile-form";
 import { useSession } from "@/lib/auth-client";
@@ -9,11 +9,20 @@ export default function ProfilePage() {
   const { data: session } = useSession();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [user, setUser] = useState(session?.user);
+  const [user, setUser] = useState(session?.user || null);
+
+  // Sync user state with session whenever session changes
+  useEffect(() => {
+    if (session?.user) {
+      setUser(session.user);
+    }
+  }, [session?.user]);
 
   if (!session?.user) {
-    return <div>Loading...</div>;
+    return <div className="p-4">Loading...</div>;
   }
+
+  const displayUser = user || session.user;
 
   return (
     <div className="p-4 sm:p-6 max-w-4xl space-y-6">
@@ -38,12 +47,12 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium text-muted-foreground">Name</label>
-            <p className="text-base font-medium">{user?.name || "(Not set)"}</p>
+            <p className="text-base font-medium">{displayUser.name || "(Not set)"}</p>
           </div>
 
           <div>
             <label className="text-sm font-medium text-muted-foreground">Email</label>
-            <p className="text-base font-medium">{user?.email}</p>
+            <p className="text-base font-medium">{displayUser.email}</p>
           </div>
 
           <div>
@@ -51,12 +60,12 @@ export default function ProfilePage() {
             <div className="mt-1">
               <span
                 className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
-                  user?.role === "ADMIN"
+                  displayUser.role === "ADMIN"
                     ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                     : "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400"
                 }`}
               >
-                {user?.role}
+                {displayUser.role}
               </span>
             </div>
           </div>
@@ -90,7 +99,7 @@ export default function ProfilePage() {
       <EditProfileForm
         open={editOpen}
         onOpenChange={setEditOpen}
-        user={user || session.user}
+        user={displayUser}
         onSuccess={(updatedUser) => setUser(updatedUser)}
       />
     </div>
