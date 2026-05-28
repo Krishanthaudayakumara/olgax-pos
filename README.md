@@ -78,6 +78,18 @@ The first time you open the app you will be guided through a setup wizard that m
 
 ---
 
+## Quick Start (Serverless — Vercel / Netlify)
+
+You can run Olgax POS serverless without Docker or a VPS:
+
+1. **Fork or Use Template**: Click **Fork** or **Use this template** at the top of this repository to create a copy in your own account.
+2. **Deploy**: Import your copy into **Vercel** or **Netlify**.
+3. **Database**: Use a managed database provider like Neon or Supabase (using a pooled `DATABASE_URL` and a direct `DIRECT_URL`).
+
+See the [Deployment Guide](docs/deployment.md#serverless-deployments-vercel--netlify) for detailed instructions.
+
+---
+
 ## Quick Start (Local Development)
 
 **Prerequisites**: Node.js ≥ 20, pnpm ≥ 9, PostgreSQL ≥ 14
