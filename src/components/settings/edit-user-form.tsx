@@ -1,44 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-
-const editUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-  role: z.enum(["ADMIN", "CASHIER"], {
-    errorMap: () => ({ message: "Please select a role" }),
-  }),
-});
-
-type EditUserFormData = z.infer<typeof editUserSchema>;
+import { X, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface EditUserFormProps {
   open: boolean;
@@ -59,129 +23,146 @@ export function EditUserForm({
   onSuccess,
 }: EditUserFormProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-
-  const form = useForm<EditUserFormData>({
-    resolver: zodResolver(editUserSchema),
-    defaultValues: {
-      name: user.name || "",
-      email: user.email,
-      role: user.role,
-    },
+  const [formData, setFormData] = useState({
+    name: user.name || "",
+    email: user.email,
+    role: user.role,
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  async function onSubmit(data: EditUserFormData) {
+  if (!open) return null;
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErrors({});
     setIsLoading(true);
 
     try {
       const response = await fetch(`/api/users/${user.id}/update`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formData),
       });
+
+      const data = await response.json();
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update user");
+        if (typeof data.error === "object" && data.details) {
+          // Zod validation errors
+          const fieldErrors: Record<string, string> = {};
+          (data.details as Array<{ path: string[]; message: string }>).forEach(
+            (err) => {
+              fieldErrors[err.path[0]] = err.message;
+            }
+          );
+          setErrors(fieldErrors);
+        } else {
+          toast.error(data.error || "Failed to update user");
+        }
+        setIsLoading(false);
+        return;
       }
 
-      toast({
-        title: "Success",
-        description: "User updated successfully",
+      toast.success("User updated successfully");
+      setFormData({
+        name: user.name || "",
+        email: user.email,
+        role: user.role,
       });
-
-      form.reset();
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      toast({
-        title: "Error",
-        description:
-          error instanceof Error ? error.message : "Failed to update user",
-        variant: "destructive",
-      });
+      toast.error(error instanceof Error ? error.message : "Failed to update user");
     } finally {
       setIsLoading(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
-          <DialogDescription>
-            Update user information and role assignment
-          </DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="w-full max-w-md rounded-xl border bg-background shadow-2xl">
+        <div className="flex items-center justify-between border-b px-5 py-4">
+          <h2 className="font-semibold">Edit User</h2>
+          <button
+            onClick={() => onOpenChange(false)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="John Doe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Name</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
+              placeholder="John Doe"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            {errors.name && (
+              <p className="text-xs text-destructive mt-1">{errors.name}</p>
+            )}
+          </div>
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="user@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Email</label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, email: e.target.value }))
+              }
+              placeholder="user@example.com"
+              className="w-full px-3 py-2 rounded-lg border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            {errors.email && (
+              <p className="text-xs text-destructive mt-1">{errors.email}</p>
+            )}
+          </div>
 
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Role</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
-                      <SelectItem value="CASHIER">Cashier</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Role</label>
+            <select
+              value={formData.role}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  role: e.target.value as "ADMIN" | "CASHIER",
+                }))
+              }
+              className="w-full px-3 py-2 rounded-lg border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="ADMIN">Admin</option>
+              <option value="CASHIER">Cashier</option>
+            </select>
+            {errors.role && (
+              <p className="text-xs text-destructive mt-1">{errors.role}</p>
+            )}
+          </div>
 
-            <div className="flex gap-2 justify-end pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          <div className="flex gap-2 justify-end pt-4">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              className="px-4 py-2 rounded-lg border border-input hover:bg-muted transition-colors text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium inline-flex items-center gap-2"
+            >
+              {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isLoading ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

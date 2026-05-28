@@ -65,9 +65,12 @@ export default function ProfilePage() {
             <h3 className="font-medium">Password</h3>
             <p className="text-sm text-muted-foreground">Change your password regularly for security</p>
           </div>
-          <Button onClick={() => setPasswordOpen(true)}>
+          <button
+            onClick={() => setPasswordOpen(true)}
+            className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+          >
             Change Password
-          </Button>
+          </button>
         </div>
       </div>
 

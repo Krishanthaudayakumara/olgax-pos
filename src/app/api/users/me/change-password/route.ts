@@ -44,13 +44,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify current password using Better Auth's password hashing
-    const { hashPassword, verifyPassword } = await import("@better-auth/password-hashing");
-
-    const isPasswordValid = await verifyPassword({
-      password: parsed.currentPassword,
-      hash: user.password || "",
-    });
+    // Verify current password using bcryptjs (Better Auth's password hashing algorithm)
+    const bcrypt = await import("bcryptjs");
+    const isPasswordValid = await bcrypt.compare(
+      parsed.currentPassword,
+      user.password || ""
+    );
 
     if (!isPasswordValid) {
       return Response.json(
@@ -59,8 +58,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // Hash new password
-    const hashedPassword = await hashPassword(parsed.newPassword);
+    // Hash new password with bcryptjs
+    const hashedPassword = await bcrypt.hash(parsed.newPassword, 10);
 
     // Update password
     await db.user.update({
