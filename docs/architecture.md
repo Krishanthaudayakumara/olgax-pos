@@ -1,4 +1,4 @@
-﻿# Architecture
+# Architecture
 
 Technical overview of the current Olgax POS codebase.
 
@@ -106,10 +106,12 @@ Notes:
 | `/sales` | Any authenticated session | Sales history |
 | `/reports` | Enforced ADMIN in page code | Reports dashboard |
 | `/settings` | Enforced ADMIN in page code | Business/device settings + plugins panel |
+| `/settings/profile` | Any authenticated session | Personal profile settings (edit name/email, change password) |
+| `/settings/users` | Enforced ADMIN in page code | User accounts management (view, create, edit, delete users) |
 
 Important:
 - Sidebar navigation hides admin pages for cashier users.
-- Route-level ADMIN checks are explicitly enforced only in `reports` and `settings` pages.
+- Route-level ADMIN checks are explicitly enforced in `reports`, `settings`, and `settings/users` pages.
 
 ---
 
@@ -146,6 +148,16 @@ Important:
 | `/api/stock-adjustments` | GET, POST | GET: Authenticated, POST: ADMIN |
 | `/api/settings` | GET | None |
 | `/api/upload` | POST | ADMIN |
+
+### Users APIs
+
+| Route | Methods | Auth requirement |
+|---|---|---|
+| `/api/users` | GET, POST | ADMIN |
+| `/api/users/[id]` | DELETE | ADMIN |
+| `/api/users/[id]/update` | PUT | ADMIN |
+| `/api/users/me/profile` | PUT | Authenticated |
+| `/api/users/me/change-password` | POST | Authenticated |
 
 Notes:
 - `settings` writes are done through a Server Action (`src/app/actions/settings-actions.ts`), not a PUT API route.
