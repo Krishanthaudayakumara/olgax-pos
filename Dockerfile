@@ -7,17 +7,22 @@ WORKDIR /app
 
 # Install dependencies
 FROM base AS deps
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* ./
 COPY prisma ./prisma
-RUN pnpm install --frozen-lockfile
+RUN pnpm_config_fetch_retries=5 \
+    pnpm_config_fetch_retry_mintimeout=20000 \
+    pnpm_config_fetch_retry_maxtimeout=120000 \
+    pnpm_config_fetch_timeout=600000 \
+    pnpm install --frozen-lockfile
 
 # Build
 FROM base AS builder
 WORKDIR /app
+ENV NEXT_STANDALONE=1
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm prisma generate
-RUN pnpm build
+RUN ./node_modules/.bin/prisma generate
+RUN ./node_modules/.bin/next build
 
 # Production runner
 FROM base AS runner
