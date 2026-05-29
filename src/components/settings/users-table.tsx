@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { EditUserForm } from "./edit-user-form";
+import { deleteUserAction } from "@/app/actions/user-actions";
 
 interface User {
   id: string;
@@ -30,11 +31,10 @@ export function UsersTable({ users, onUserDeleted, onUserUpdated }: UsersTablePr
 
     setDeleting(userId);
     try {
-      const res = await fetch(`/api/users/${userId}`, { method: "DELETE" });
-      const data = await res.json();
+      const result = await deleteUserAction(userId);
 
-      if (!res.ok) {
-        toast.error(data.error || "Failed to delete user");
+      if (result.error) {
+        toast.error(result.error as string);
         setDeleting(null);
         return;
       }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PasswordInput } from "@/components/ui/password-input";
+import { createUserAction } from "@/app/actions/user-actions";
 
 interface CreateUserFormProps {
   open: boolean;
@@ -27,19 +28,13 @@ export function CreateUserForm({ open, onOpenChange, onUserCreated }: CreateUser
     setLoading(true);
 
     try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const result = await createUserAction(formData);
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (typeof data.error === "object") {
+      if (result.error) {
+        if (typeof result.error === "object") {
           // Field errors from Zod
           setErrors(
-            Object.entries(data.error as Record<string, string[]>).reduce(
+            Object.entries(result.error as Record<string, string[]>).reduce(
               (acc, [key, msgs]) => {
                 acc[key] = (msgs as string[])[0];
                 return acc;
@@ -48,18 +43,19 @@ export function CreateUserForm({ open, onOpenChange, onUserCreated }: CreateUser
             )
           );
         } else {
-          toast.error(data.error || "Failed to create user");
+          toast.error(result.error);
         }
         setLoading(false);
         return;
       }
 
-      toast.success(`User ${data.user.email} created successfully`);
+      toast.success(`User ${formData.email} created successfully`);
       setFormData({ name: "", email: "", password: "", role: "CASHIER" });
       onOpenChange(false);
       onUserCreated?.();
-    } catch (e) {
+    } catch (err) {
       toast.error("Failed to create user");
+    } finally {
       setLoading(false);
     }
   }

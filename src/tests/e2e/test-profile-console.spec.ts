@@ -7,7 +7,7 @@ test("Capture profile page state and console", async ({ page }) => {
 
   // Login
   await page.goto("http://localhost:3000/login");
-  await page.fill('input[type="email"]', "admin@olgax.com");
+  await page.fill('input[type="email"]', "admin@example.com");
   await page.fill('input[type="password"]', "admin123456");
   await page.click('button[type="submit"]');
 
@@ -19,5 +19,5 @@ test("Capture profile page state and console", async ({ page }) => {
   await page.waitForTimeout(3000); // Wait for client-side queries
 
   // Take screenshot
-  await page.screenshot({ path: "C:/Users/Krishantha/.gemini/antigravity/browser_recordings/profile_test.png" });
+  await page.screenshot({ path: "test-results/profile_test.png" });
 });

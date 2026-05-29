@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChangePasswordForm } from "@/components/settings/change-password-form";
 import { EditProfileForm } from "@/components/settings/edit-profile-form";
 import { useSession } from "@/lib/auth-client";
+import { useTranslations } from "next-intl";
 
 export default function ProfilePage() {
+  const t = useTranslations("profile");
   const { data: session, refetch } = useSession();
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -19,36 +21,36 @@ export default function ProfilePage() {
   return (
     <div className="p-4 sm:p-6 max-w-4xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">Manage your account settings</p>
+        <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
+        <p className="text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <div className="rounded-lg border p-6">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold">Account Information</h2>
-            <p className="text-sm text-muted-foreground">Your personal account details</p>
+            <h2 className="text-xl font-semibold">{t("account_info")}</h2>
+            <p className="text-sm text-muted-foreground">{t("account_info_desc")}</p>
           </div>
           <button
             onClick={() => setEditOpen(true)}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
           >
-            Edit
+            {t("edit")}
           </button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Name</label>
+            <label className="text-sm font-medium text-muted-foreground">{t("name")}</label>
             <p className="text-base font-medium">{displayUser.name || "(Not set)"}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Email</label>
+            <label className="text-sm font-medium text-muted-foreground">{t("email")}</label>
             <p className="text-base font-medium">{displayUser.email}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium text-muted-foreground">Role</label>
+            <label className="text-sm font-medium text-muted-foreground">{t("role")}</label>
             <div className="mt-1">
               <span
                 className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${
@@ -66,19 +68,19 @@ export default function ProfilePage() {
 
       <div className="rounded-lg border p-6">
         <div className="mb-4">
-          <h2 className="text-xl font-semibold">Security</h2>
-          <p className="text-sm text-muted-foreground">Manage your password and security settings</p>
+          <h2 className="text-xl font-semibold">{t("security")}</h2>
+          <p className="text-sm text-muted-foreground">{t("security_desc")}</p>
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="font-medium">Password</h3>
-            <p className="text-sm text-muted-foreground">Change your password regularly for security</p>
+            <h3 className="font-medium">{t("password")}</h3>
+            <p className="text-sm text-muted-foreground">{t("password_desc")}</p>
           </div>
           <button
             onClick={() => setPasswordOpen(true)}
             className="px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
           >
-            Change Password
+            {t("change_password")}
           </button>
         </div>
       </div>

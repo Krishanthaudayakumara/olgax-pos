@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { updateUserAction } from "@/app/actions/user-actions";
 
 interface EditUserFormProps {
   open: boolean;
@@ -30,6 +31,17 @@ export function EditUserForm({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        name: user.name || "",
+        email: user.email,
+        role: user.role,
+      });
+      setErrors({});
+    }
+  }, [open, user]);
+
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -38,26 +50,19 @@ export function EditUserForm({
     setIsLoading(true);
 
     try {
-      const response = await fetch(`/api/users/${user.id}/update`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const result = await updateUserAction(user.id, formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (typeof data.error === "object" && data.details) {
+      if (result.error) {
+        if ("details" in result && result.details) {
           // Zod validation errors
           const fieldErrors: Record<string, string> = {};
-          (data.details as Array<{ path: string[]; message: string }>).forEach(
-            (err) => {
-              fieldErrors[err.path[0]] = err.message;
-            }
-          );
+          result.details.forEach((err) => {
+            const key = err.path[0] !== undefined ? String(err.path[0]) : "global";
+            fieldErrors[key] = err.message;
+          });
           setErrors(fieldErrors);
         } else {
-          toast.error(data.error || "Failed to update user");
+          toast.error(result.error as string);
         }
         setIsLoading(false);
         return;

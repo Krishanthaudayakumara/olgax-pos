@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { updateProfileAction } from "@/app/actions/user-actions";
 
 interface EditProfileFormProps {
   open: boolean;
@@ -27,6 +28,16 @@ export function EditProfileForm({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        name: user.name || "",
+        email: user.email,
+      });
+      setErrors({});
+    }
+  }, [open, user]);
+
   if (!open) return null;
 
   async function handleSubmit(e: React.FormEvent) {
@@ -35,26 +46,19 @@ export function EditProfileForm({
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/users/me/profile", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const result = await updateProfileAction(formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (typeof data.error === "object" && data.details) {
+      if (result.error) {
+        if ("details" in result && result.details) {
           // Zod validation errors
           const fieldErrors: Record<string, string> = {};
-          (data.details as Array<{ path: string[]; message: string }>).forEach(
-            (err) => {
-              fieldErrors[err.path[0]] = err.message;
-            }
-          );
+          result.details.forEach((err) => {
+            const key = err.path[0] !== undefined ? String(err.path[0]) : "global";
+            fieldErrors[key] = err.message;
+          });
           setErrors(fieldErrors);
         } else {
-          toast.error(data.error || "Failed to update profile");
+          toast.error(result.error as string);
         }
         setIsLoading(false);
         return;
@@ -62,7 +66,9 @@ export function EditProfileForm({
 
       toast.success("Profile updated successfully");
       onOpenChange(false);
-      onSuccess?.(data.user);
+      if (result.user) {
+        onSuccess?.(result.user);
+      }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update profile");
     } finally {

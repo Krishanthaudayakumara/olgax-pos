@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { PasswordInput } from "@/components/ui/password-input";
+import { changePasswordAction } from "@/app/actions/user-actions";
 
 interface ChangePasswordFormProps {
   open: boolean;
@@ -46,29 +47,22 @@ export function ChangePasswordForm({
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/users/me/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        }),
+      const result = await changePasswordAction({
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        if (typeof data.error === "object" && data.details) {
+      if (result.error) {
+        if ("details" in result && result.details) {
           // Zod validation errors
           const fieldErrors: Record<string, string> = {};
-          (data.details as Array<{ path: string[]; message: string }>).forEach(
-            (err) => {
-              fieldErrors[err.path[0]] = err.message;
-            }
-          );
+          result.details.forEach((err) => {
+            const key = err.path[0] !== undefined ? String(err.path[0]) : "global";
+            fieldErrors[key] = err.message;
+          });
           setErrors(fieldErrors);
         } else {
-          toast.error(data.error || "Failed to change password");
+          toast.error(result.error as string);
         }
         setIsLoading(false);
         return;
