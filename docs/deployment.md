@@ -7,6 +7,7 @@ How to deploy Olgax POS in production.
 ## Table of Contents
 
 - [Docker Compose (Recommended)](#docker-compose-recommended)
+- [Docker Hub Image (No Build)](#docker-hub-image-no-build)
 - [Serverless Deployments (Vercel / Netlify)](#serverless-deployments-vercel--netlify)
 - [Managed 3rd-Party PostgreSQL Providers](#managed-3rd-party-postgresql-providers)
 - [Environment Variables for Production](#environment-variables-for-production)
@@ -39,6 +40,37 @@ docker compose logs -f web
 ```
 
 The web service will be available on port **3000**. Put it behind Nginx or Caddy for HTTPS.
+
+---
+
+## Docker Hub Image (No Build)
+
+Use this when you want users to run Olgax POS without cloning or building from source.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/olgax/olgax-pos/main/docker-compose.hub.yml -o docker-compose.yml && docker compose up -d
+```
+
+This uses prebuilt image `olgax/olgax-pos:latest`.
+
+For PowerShell users:
+
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/olgax/olgax-pos/main/docker-compose.hub.yml -OutFile docker-compose.yml; docker compose up -d
+```
+
+### Publishing the image (maintainers)
+
+This repository includes GitHub Actions workflow `.github/workflows/docker-publish.yml` that publishes `olgax/olgax-pos` on:
+
+- pushes to `main` (`latest`, `edge`, and `sha-*` tags)
+- version tags like `v1.2.3`
+- manual runs from Actions tab
+
+Required GitHub repository secrets:
+
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN` (Docker Hub access token)
 
 ---
 

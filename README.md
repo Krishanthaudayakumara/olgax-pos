@@ -80,6 +80,20 @@ The first time you open the app you will be guided through a setup wizard that m
 
 ---
 
+## One-Command Install (Docker Hub image)
+
+If you just want to run Olgax POS without cloning this repo, use the prebuilt image:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/olgax/olgax-pos/main/docker-compose.hub.yml -o docker-compose.yml && docker compose up -d
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
+
+This pulls `olgax/olgax-pos:latest` from Docker Hub.
+
+---
+
 ## Quick Start (Serverless — Vercel / Netlify)
 
 You can run Olgax POS serverless without Docker or a VPS:
