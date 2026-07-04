@@ -35,6 +35,10 @@ export const auth = betterAuth({
       maxAge: 60 * 60 * 24 * 7, // 7 days
     },
   },
+  trustHost: true,
+  advanced: {
+    trustedProxyHeaders: true,
+  },
 });
 
 export type Session = typeof auth.$Infer.Session;
