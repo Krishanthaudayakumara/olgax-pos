@@ -24,14 +24,16 @@ export async function POST(): Promise<NextResponse> {
   }
 
   const cwd = process.cwd();
-  const prismaBin = path.join(cwd, "node_modules", ".bin", "prisma");
 
   try {
     // Use migrate deploy in production, db push in development
     const isDev = process.env.NODE_ENV !== "production";
+    
+    // In production Docker (Next.js standalone mode), node_modules is stripped.
+    // We use npx to run the Prisma CLI on the fly, which downloads it seamlessly.
     const command = isDev
-      ? `"${prismaBin}" db push`
-      : `"${prismaBin}" migrate deploy`;
+      ? `npx -y prisma db push`
+      : `npx -y prisma migrate deploy`;
 
     const output = execSync(command, {
       cwd,
