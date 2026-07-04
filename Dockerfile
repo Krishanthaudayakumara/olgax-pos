@@ -37,9 +37,22 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prisma schema + migrations (needed by the setup wizard at runtime)
+# Prisma schema + migrations (for prisma migrate deploy at startup)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+
+# Install Prisma CLI fresh using npm. We install it in an isolated temp dir 
+# and use tar to merge it into the Next.js standalone node_modules. This provides 
+# the required "prisma/config" module at runtime without cp or npm conflicts.
+COPY --from=builder /app/package.json ./package.json
+RUN PRISMA_VERSION=$(node -p "const p=require('./package.json'); p.devDependencies?.prisma ?? p.dependencies?.prisma ?? 'latest'") && \
+    mkdir -p /tmp/prisma-install && \
+    cd /tmp/prisma-install && \
+    npm install --no-package-lock --no-save "prisma@${PRISMA_VERSION}" && \
+    mkdir -p /app/node_modules && \
+    cd node_modules && tar cf - . | (cd /app/node_modules && tar xf -) && \
+    chown -R nextjs:nodejs /app/node_modules && \
+    rm -rf /tmp/prisma-install
 
 USER nextjs
 EXPOSE 3000
