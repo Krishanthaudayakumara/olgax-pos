@@ -42,13 +42,19 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
 # Install Prisma CLI fresh using npm (NOT copied from pnpm builder).
-# pnpm uses a virtual store with symlinks; copying only @prisma/* from it leaves
-# @prisma/engines unresolvable in the runner. npm creates a real flat tree.
-# We read the exact prisma version from package.json so it always matches the build.
+# We install it in a temporary folder without package.json to avoid npm 
+# trying to resolve the entire Next.js dependency tree and failing.
 COPY --from=builder /app/package.json ./package.json
 RUN PRISMA_VERSION=$(node -p "const p=require('./package.json'); p.devDependencies?.prisma ?? p.dependencies?.prisma ?? 'latest'") && \
-    npm install --ignore-scripts --no-audit --no-fund "prisma@${PRISMA_VERSION}" && \
-    chown -R nextjs:nodejs /app/node_modules
+    mkdir -p /tmp/prisma-install && \
+    cd /tmp/prisma-install && \
+    npm install --no-package-lock --no-save "prisma@${PRISMA_VERSION}" && \
+    mkdir -p /app/node_modules/.bin && \
+    cp -r node_modules/prisma /app/node_modules/prisma && \
+    cp -r node_modules/@prisma /app/node_modules/@prisma && \
+    cp node_modules/.bin/prisma /app/node_modules/.bin/prisma && \
+    chown -R nextjs:nodejs /app/node_modules && \
+    rm -rf /tmp/prisma-install
 
 USER nextjs
 EXPOSE 3000
