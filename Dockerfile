@@ -37,16 +37,18 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prisma schema + migrations (for prisma migrate deploy at startup)
+# Prisma schema + migrations (needed by the setup wizard at runtime)
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 
-# Only copy the Prisma CLI and its query engine binaries — NOT the full node_modules.
-# The standalone bundle already embeds everything Next.js needs.
-# We only need the prisma binary so the setup wizard can run `prisma migrate deploy`.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+# Install Prisma CLI fresh using npm (NOT copied from pnpm builder).
+# pnpm uses a virtual store with symlinks; copying only @prisma/* from it leaves
+# @prisma/engines unresolvable in the runner. npm creates a real flat tree.
+# We read the exact prisma version from package.json so it always matches the build.
+COPY --from=builder /app/package.json ./package.json
+RUN PRISMA_VERSION=$(node -p "const p=require('./package.json'); p.devDependencies?.prisma ?? p.dependencies?.prisma ?? 'latest'") && \
+    npm install --ignore-scripts --no-audit --no-fund "prisma@${PRISMA_VERSION}" && \
+    chown -R nextjs:nodejs /app/node_modules
 
 USER nextjs
 EXPOSE 3000

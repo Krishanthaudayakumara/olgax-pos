@@ -58,7 +58,7 @@
 
 ---
 
-## Quick Start (Docker — recommended)
+## Quick Start (Docker — plain VPS)
 
 ```bash
 # 1. Clone
@@ -68,15 +68,39 @@ cd olgax-pos
 # 2. Configure secrets
 cp .env.example .env
 # Edit .env: set BETTER_AUTH_SECRET to a long random string
+# Set BETTER_AUTH_URL and NEXT_PUBLIC_APP_URL to your server's IP or domain
 
-# 3. Start
+# 3. Start (app on :3000, postgres on :5432)
 docker compose up -d
 
 # 4. Open in browser
-open http://localhost:3000
+open http://your-server-ip:3000
 ```
 
+> If port 3000 is already in use, add `APP_PORT=3100` to your `.env` to use a different port.
+
 The first time you open the app you will be guided through a setup wizard that migrates the database and creates your admin account.
+
+---
+
+## Quick Start (Coolify)
+
+Coolify has its own Caddy reverse proxy that routes traffic internally — **do not bind host ports** or you'll get port conflict errors on shared servers.
+
+```bash
+# In Coolify:
+# 1. Create a new resource → Docker Compose
+# 2. Set your repository and branch
+# 3. Set "Docker Compose Filename" to: docker-compose.coolify.yml
+# 4. Add your environment variables in the Coolify UI:
+#    BETTER_AUTH_SECRET=<your 48-char random secret>
+#    BETTER_AUTH_URL=https://your-domain.com
+#    NEXT_PUBLIC_APP_URL=https://your-domain.com
+#    BETTER_AUTH_TRUSTED_ORIGINS=https://your-domain.com
+# 5. Deploy
+```
+
+The [`docker-compose.coolify.yml`](docker-compose.coolify.yml) override removes host port bindings so Coolify's proxy can route to your containers without conflicts. The setup wizard will guide you through database migration and admin account creation on first boot.
 
 ---
 

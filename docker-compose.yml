@@ -6,6 +6,10 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: olgax_pos
+    # Expose postgres to the host so you can connect with a DB client (e.g. pgAdmin).
+    # Comment this out if you don't need external DB access.
+    ports:
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -19,6 +23,10 @@ services:
       context: .
       dockerfile: Dockerfile
     restart: unless-stopped
+    # Change APP_PORT in your .env if port 3000 is already in use on your server.
+    # When using Coolify/Traefik/Nginx as a reverse proxy, use docker-compose.coolify.yml instead.
+    ports:
+      - "${APP_PORT:-3000}:3000"
     environment:
       DATABASE_URL: "postgresql://postgres:password@postgres:5432/olgax_pos?schema=public"
       BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:-change_me_in_production}"

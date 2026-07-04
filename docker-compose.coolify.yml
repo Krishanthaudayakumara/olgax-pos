@@ -1,0 +1,20 @@
+# docker-compose.coolify.yml
+#
+# Use this file when deploying via Coolify (or any other reverse-proxy platform
+# such as Traefik, Portainer with a proxy, etc.).
+#
+# Coolify's built-in Caddy proxy routes traffic to containers via the internal
+# Docker network — it does NOT need services to bind ports on the host.
+# Leaving host ports bound (e.g. 3000:3000) will cause deployment failures if
+# another service already occupies that port on the same server.
+#
+# In Coolify, set your "Docker Compose Filename" to docker-compose.coolify.yml,
+# OR configure it to merge both files with:
+#   docker compose -f docker-compose.yml -f docker-compose.coolify.yml up -d
+#
+services:
+  postgres:
+    ports: !reset []  # Remove host port binding — DB stays internal
+
+  web:
+    ports: !reset []  # Remove host port binding — Coolify's proxy routes externally
