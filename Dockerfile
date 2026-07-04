@@ -49,10 +49,7 @@ RUN PRISMA_VERSION=$(node -p "const p=require('./package.json'); p.devDependenci
     mkdir -p /tmp/prisma-install && \
     cd /tmp/prisma-install && \
     npm install --no-package-lock --no-save "prisma@${PRISMA_VERSION}" && \
-    mkdir -p /app/node_modules/.bin && \
-    cp -r node_modules/prisma /app/node_modules/prisma && \
-    cp -r node_modules/@prisma /app/node_modules/@prisma && \
-    cp -r node_modules/.bin/* /app/node_modules/.bin/ && \
+    cp -r node_modules/* /app/node_modules/ && \
     chown -R nextjs:nodejs /app/node_modules && \
     rm -rf /tmp/prisma-install
 
